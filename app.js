@@ -3,7 +3,7 @@ const app = express();
 const expressLayouts = require('express-ejs-layouts');
 const { body, validationResult, check } = require('express-validator');
 
-const {loadContact, findContact, addContact, cekDuplikat} = require('./utils/contacts');
+const {loadContact, findContact, addContact, cekDuplikat, deleteContact, updateContacts } = require('./utils/contacts');
 const port = 3000;
 
 const session = require('express-session');
@@ -108,6 +108,60 @@ app.post('/contact', [
         // flash message 
         req.flash('msg', 'Data berhasil ditambahkan!')
         res.redirect('/contact');
+    }
+})
+
+// Ubah data contact
+app.get('/contact/edit/:nama', (req, res) => {
+    const contact = findContact(req.params.nama);
+    console.log(contact)
+    res.render('edit-contact', {
+        title:'Form Edit contact',
+        layout:'layouts/main-layout',
+        contact
+    })
+})
+
+//kirim data edited
+app.post('/contact/update', [
+    body('nama').custom((value, { req }) => {
+        const duplikat = cekDuplikat(value);
+        if(value !== req.body.oldNama && duplikat){
+            throw new Error('Nama contact sudah digunakan !');
+        }
+        return true;
+    }),
+    check('email', 'Email tidak valid').isEmail(),
+    check('nohp', 'Nomor Telepon Tidak Valid').isMobilePhone('id-ID')], (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+    //   return res.status(400).json({ errors: errors.array() });
+
+        res.render('edit-contact',{
+            layout: 'layouts/main-layout',
+            title: 'Halaman Ubah Contact',
+            errors: errors.array(),
+            contact: req.body
+        });
+
+    } else {
+        updateContacts(req.body)
+        req.flash('msg', 'Data contact berhasil diubah!')
+        res.redirect('/contact')
+    }
+})
+
+app.get('/contact/delete/:nama', (req, res) => {
+    const contact = findContact(req.params.nama);
+
+    // jika contact tidak ada
+    if (!contact){
+        res.status(404);
+        res.send('<h1>404 Not Found</h1>')
+    } else {
+        deleteContact(req.params.nama);
+        req.flash('msg', 'Data contact berhasil dihapus!')
+        res.redirect('/contact')
     }
 })
 
