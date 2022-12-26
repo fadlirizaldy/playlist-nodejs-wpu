@@ -1,0 +1,16 @@
+<hr>
+<h1 style="text-align: center;">Hello Welcome!</h1>
+<h2 style="text-align: center;"><%= nama %> </h2>
+<div class="dataMahasiswa">
+    <h4>Data Mahasiswa</h4>
+
+    <% if (mahasiswa.length < 1) { %>
+        <p>Data Mahasiswa masih kosong</p>
+    <% } %>
+    <% mahasiswa.forEach(e => { %>
+        <ul>
+        <li><%= e.nama %> </li>
+        <li><%= e.email %> </li>
+    </ul>
+    <% }) %>
+</div>
